@@ -1,0 +1,3 @@
+/.ipynb_checkpoints/*
+/Pipfile.lock
+__pycache__/*
