@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+import hypothesis.strategies as st
+
+
 def selection_sort(data):
     """Sort contents of data in place.
 
@@ -84,6 +88,25 @@ def count_steps(sort, data):
 
     run(sort, data, inc_count)
     return count
+
+
+def plot_sorts(sorts, input_sizes):
+    """Create a plot of runtime for each sort with different input sizes.
+
+Will graph each sort with each input size. Returns a matplotlib figure.
+"""
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    for s in sorts:
+        data = [(n, count_steps(s, st.lists(st.integers(),
+                                            min_size=n, max_size=n).example()))
+                for n in input_sizes]
+        ax.plot(*zip(*data))
+    ax.legend([s.__name__ for s in sorts])
+    plt.xlabel('Input Length')
+    plt.ylabel('Steps')
+    fig
 
 
 if __name__ == '__main__':
