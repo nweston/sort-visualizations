@@ -11,8 +11,9 @@ class SelectionSort(unittest.TestCase):
     @example([])
     def test_sort_works(self, xs):
         correct = list(sorted(xs))
-        sort.run_sort(sort.selection_sort, xs, observe=False)
+        sort.run(sort.selection_sort, xs)
         assert correct == xs
+
 
 class MergeSort(unittest.TestCase):
     @given(st.lists(st.integers()))
@@ -20,5 +21,15 @@ class MergeSort(unittest.TestCase):
     @example([])
     def test_sort_works(self, xs):
         correct = list(sorted(xs))
-        sort.run_sort(sort.merge_sort, xs, observe=False)
+        sort.run(sort.merge_sort, xs)
         assert correct == xs
+
+
+class CountSteps(unittest.TestCase):
+    def test_count(self):
+
+        def fake_sort(data):
+            for _ in range(10):
+                yield ('fake_effect', 0, 0)
+
+        self.assertEqual(sort.count_steps(fake_sort, []), 10)

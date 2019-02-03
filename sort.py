@@ -52,17 +52,44 @@ def merge_sort(data, left=None, right=None):
         yield e
 
 
-def run_sort(sort, data, observe=True):
-    for kind, a, b in sort(data):
-        if observe:
-            print(kind, a, b)
-        if kind == 'swap':
-            data[a], data[b] = data[b], data[a]
-        if kind == 'set':
-            data[a] = b
+def perform_effect(effect, data):
+    """Apply an effect to a list, modifying the data argument."""
+    kind, a, b = effect
+    if kind == 'swap':
+        data[a], data[b] = data[b], data[a]
+    if kind == 'set':
+        data[a] = b
+
+
+def run(sort, data, callback=None):
+    """Run a sorting algorithm, passing all effects to optional callback."""
+    for effect in sort(data):
+        if callback:
+            callback(*effect)
+        perform_effect(effect, data)
+
+
+def print_effects(sort, data):
+    """Run a sorting algorithm, printing all steps."""
+    run(sort, data, lambda *e: print(*e))
+
+
+def count_steps(sort, data):
+    """Run a sorting algorithm, returning the number of effects performed."""
+
+    def inc_count(*args):
+        nonlocal count
+        count = count + 1
+    count = 0
+
+    run(sort, data, inc_count)
+    return count
 
 
 if __name__ == '__main__':
     lst = [5, 11, 2, 3, 9]
-    run_sort(merge_sort, lst, observe=True)
+    mysort = merge_sort
+
+    print_effects(mysort, lst)
     print(lst)
+    print(count_steps(mysort, lst), 'steps')
