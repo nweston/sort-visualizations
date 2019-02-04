@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import ArtistAnimation
-import hypothesis.strategies as st
 import sort
 
 
@@ -13,16 +12,12 @@ Will graph each sort with each input size. Returns a matplotlib figure.
     ax = fig.add_subplot(1, 1, 1)
 
     for s in sorts:
-        data = [(n,
-                 sort.count_steps(s, st.lists(st.integers(),
-                                              min_size=n, max_size=n)
-                                  .example()))
+        data = [(n, sort.count_steps(s, sort.random_list(n)))
                 for n in input_sizes]
         ax.plot(*zip(*data))
     ax.legend([s.__name__ for s in sorts])
     plt.xlabel('Input Length')
     plt.ylabel('Steps')
-    fig
 
 
 def animated_bars(sort_func, data, interval):

@@ -1,3 +1,6 @@
+import hypothesis.strategies as st
+
+
 def selection_sort(data):
     """Sort contents of data in place.
 
@@ -84,6 +87,11 @@ def count_steps(sort, data):
 
     run(sort, data, inc_count)
     return count
+
+
+def random_list(length, max_value=None):
+    return st.lists(st.integers(min_value=1, max_value=max_value),
+                    min_size=length, max_size=length).example()
 
 
 if __name__ == '__main__':
