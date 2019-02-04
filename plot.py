@@ -33,4 +33,5 @@ def animated_bars(sort_func, data, interval):
 
     sort.run(sort_func, data, create_frame)
     create_frame()              # Final state
+    plt.close()
     return ArtistAnimation(fig, frames, interval=interval)
