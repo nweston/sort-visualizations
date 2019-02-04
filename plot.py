@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import ArtistAnimation
+from matplotlib.animation import FuncAnimation
 import sort
 
 
@@ -22,16 +22,25 @@ Will graph each sort with each input size. Returns a matplotlib figure.
 
 def animated_bars(sort_func, data, interval):
     """Create a sort animation showing each list element as a vertical bar."""
-    frames = []
+
+    # Run the entire sort, remembering all intermediate states
+    states = [list(data)]
+    def save_state(*_):
+        states.append(list(data))
+
+    sort.run(sort_func, data, save_state)
+    save_state() # Final state
+
     fig = plt.figure()
-
-    def create_frame(*_):
-        pic = plt.bar(x=range(len(data)), height=list(data), color='blue')
-        plt.xticks([])
-        plt.yticks([])
-        frames.append(pic)
-
-    sort.run(sort_func, data, create_frame)
-    create_frame()              # Final state
+    ax = fig.add_subplot(1,1,1)
+    bars = ax.bar(x=range(len(data)), height=list(data))
+    plt.xticks([])
+    plt.yticks([])
     plt.close()
-    return ArtistAnimation(fig, frames, interval=interval)
+
+    def animate(i):
+        for b, h in zip(bars, states[i]):
+            b.set_height(h)
+        return bars
+
+    return FuncAnimation(fig, animate, frames=len(states), interval=interval)
