@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
 import matplotlib.patches as patches
+import matplotlib.text as text
 from matplotlib.animation import FuncAnimation
 import sort
 
@@ -68,9 +69,13 @@ def circle_plot(fig, data):
 
     for i, v in enumerate(data):
         x = (i + 0.5) * spacing
+        y = 0.5
         r = scaled_radius(v)
-        c = patches.Ellipse((x, 0.5), r, yscale * r, transform=fig.transFigure, figure=fig,
+        c = patches.Ellipse((x, y), r, yscale * r, transform=fig.transFigure, figure=fig,
                           fill=False)
         fig.patches.append(c)
 
-    return fig
+        t = text.Text(x, y, str(v), transform=fig.transFigure, figure=fig,
+                     verticalalignment='center', horizontalalignment='center',
+                     fontsize=300 * r)
+        fig.texts.append(t)
