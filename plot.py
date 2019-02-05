@@ -128,6 +128,7 @@ class CircleAnimation:
         effects = []
         sort.run(sort_func, data, lambda *e: effects.append(e))
         self._generate_frames(effects)
+        self._focused = None
 
     def _generate_frames(self, effects):
         self._frames = [('init', None, None)]
@@ -143,10 +144,20 @@ class CircleAnimation:
     def __len__(self):
         return len(self._frames)
 
+    def _focus(self, i):
+        if self._focused is not None:
+            self._circles[self._focused].set_edgecolor('black')
+        if i is not None:
+            self._circles[i].set_edgecolor('orange')
+            self._focused = i
+
     def animate(self, step):
         kind, a, b = self._frames[step]
-        if kind == 'pre-swap':
+        if kind == 'focus':
+            self._focus(a)
+        elif kind == 'pre-swap':
             c = self._circles
+            self._focus(None)
             c[a].set_fill(True)
             c[b].set_fill(True)
         elif kind == 'swap':

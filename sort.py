@@ -10,10 +10,12 @@ responsible for performing swaps.
 """
     for dest in range(len(data) - 1):
         smallest_i = dest
-        for i in range(dest+1, len(data)):
+        yield ('focus', dest, None)
+        for i in range(dest + 1, len(data)):
             yield ('cmp', smallest_i, i)
             if data[i] < data[smallest_i]:
                 smallest_i = i
+                yield ('focus', i, None)
         yield ('swap', dest, smallest_i)
 
 
@@ -95,8 +97,8 @@ def random_list(length, max_value=None):
 
 
 if __name__ == '__main__':
-    lst = [5, 11, 2, 3, 9]
-    mysort = merge_sort
+    lst = [2,10,5,3,8,1]
+    mysort = selection_sort
 
     print_effects(mysort, lst)
     print(lst)
