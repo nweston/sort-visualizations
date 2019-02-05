@@ -124,16 +124,32 @@ class CircleAnimation:
         fig.patches.extend(self._circles)
         fig.texts.extend(self._texts)
 
-        # Run the entire sort, remembering all intermediate states
-        self._effects = []
-        sort.run(sort_func, data, lambda *e: self._effects.append(e))
+        # Collect effects and generate animation frames
+        effects = []
+        sort.run(sort_func, data, lambda *e: effects.append(e))
+        self._generate_frames(effects)
+
+    def _generate_frames(self, effects):
+        self._frames = [('init', None, None)]
+        for e in effects:
+            kind, a, b = e
+            if kind == 'swap':
+                self._frames.append(('pre-swap', a, b))
+                self._frames.append(e)
+                self._frames.append(('post-swap', a, b))
+            else:
+                self._frames.append(e)
 
     def __len__(self):
-        return len(self._effects)
+        return len(self._frames)
 
     def animate(self, step):
-        kind, a, b = self._effects[step]
-        if kind == 'swap':
+        kind, a, b = self._frames[step]
+        if kind == 'pre-swap':
+            c = self._circles
+            c[a].set_fill(True)
+            c[b].set_fill(True)
+        elif kind == 'swap':
             c = self._circles
             c[a], c[b] = c[b], c[a]
             c[a].set_center(((a + 0.5) * self._spacing, 0.5))
@@ -143,6 +159,10 @@ class CircleAnimation:
             c[a], c[b] = c[b], c[a]
             c[a].set_position(((a + 0.5) * self._spacing, 0.5))
             c[b].set_position(((b + 0.5) * self._spacing, 0.5))
+        elif kind == 'post-swap':
+            c = self._circles
+            c[a].set_fill(False)
+            c[b].set_fill(False)
 
 
 def animated_circles(fig, sort_func, data, interval):
