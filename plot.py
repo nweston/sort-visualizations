@@ -30,12 +30,11 @@ def animated_bars(sort_func, data, interval):
     states = [list(data)]
     def save_state(*_):
         states.append(list(data))
-
     sort.run(sort_func, data, save_state)
-    save_state() # Final state
+    save_state()  # Final state
 
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
     bars = ax.bar(x=range(len(data)), height=list(data))
     plt.xticks([])
     plt.yticks([])
@@ -50,7 +49,8 @@ def animated_bars(sort_func, data, interval):
 
 
 def circle_plot(fig, data):
-    # Artists are scaled according to aspect ratio. We'll need to undo this to draw circles.
+    # Artists are scaled according to aspect ratio. We'll need to undo
+    # this to draw circles.
     xsize, ysize = fig.get_size_inches()
     yscale = xsize / ysize
 
@@ -71,11 +71,85 @@ def circle_plot(fig, data):
         x = (i + 0.5) * spacing
         y = 0.5
         r = scaled_radius(v)
-        c = patches.Ellipse((x, y), r, yscale * r, transform=fig.transFigure, figure=fig,
-                          fill=False)
+        c = patches.Ellipse((x, y), r, yscale * r, transform=fig.transFigure,
+                            figure=fig, fill=False)
         fig.patches.append(c)
 
         t = text.Text(x, y, str(v), transform=fig.transFigure, figure=fig,
-                     verticalalignment='center', horizontalalignment='center',
-                     fontsize=300 * r)
+                      verticalalignment='center', horizontalalignment='center',
+                      fontsize=300 * r)
         fig.texts.append(t)
+
+
+class CircleAnimation:
+    def __init__(self, fig, sort_func, data):
+        # Create the animation objects
+
+        # Artists are scaled according to aspect ratio. We'll need to undo
+        # this to draw circles.
+        xsize, ysize = fig.get_size_inches()
+        yscale = xsize / ysize
+
+        # This magic invisible line makes the figure show up
+        fig.lines.append(lines.Line2D([0, 0], [0, 1],
+                                      transform=fig.transFigure,
+                                      figure=fig, color='white'))
+
+        self._spacing = 1.0 / (len(data) + 1)
+        self._radius = 0.8 * self._spacing
+        smallest = min(*data)
+        largest = max(*data)
+
+        def scaled_radius(value):
+            interp = (value - smallest) / (largest - smallest)
+            return self._radius * (0.6 + interp * 0.4)
+
+        def create_artists(i, v):
+            x = (i + 0.5) * self._spacing
+            y = 0.5
+            r = scaled_radius(v)
+            c = patches.Ellipse((x, y), r, yscale * r,
+                                transform=fig.transFigure,
+                                figure=fig, fill=False)
+
+            t = text.Text(x, y, str(v), transform=fig.transFigure, figure=fig,
+                          verticalalignment='center',
+                          horizontalalignment='center',
+                          fontsize=300 * r)
+            return c, t
+
+        self._circles, self._texts = map(list,
+                                         zip(*[create_artists(i, v)
+                                               for i, v in enumerate(data)]))
+        fig.patches.extend(self._circles)
+        fig.texts.extend(self._texts)
+
+        # Run the entire sort, remembering all intermediate states
+        self._effects = []
+        sort.run(sort_func, data, lambda *e: self._effects.append(e))
+
+    def __len__(self):
+        return len(self._effects)
+
+    def animate(self, step):
+        kind, a, b = self._effects[step]
+        if kind == 'swap':
+            c = self._circles
+            c[a], c[b] = c[b], c[a]
+            c[a].set_center(((a + 0.5) * self._spacing, 0.5))
+            c[b].set_center(((b + 0.5) * self._spacing, 0.5))
+
+            c = self._texts
+            c[a], c[b] = c[b], c[a]
+            c[a].set_position(((a + 0.5) * self._spacing, 0.5))
+            c[b].set_position(((b + 0.5) * self._spacing, 0.5))
+
+
+def animated_circles(fig, sort_func, data, interval):
+    """Create a sort animation showing each list element as a circle.
+
+The circles are labeled with the number they contain, and scaled based
+on the size of the value."""
+    anim = CircleAnimation(fig, sort_func, data)
+    return FuncAnimation(fig, anim.animate, frames=len(anim),
+                         interval=interval)
