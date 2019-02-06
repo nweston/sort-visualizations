@@ -47,13 +47,65 @@ def merge_sort(data, left=None, right=None):
         return
 
     mid = (left + right) // 2
-    yield ('subdivide', (left, mid), (mid, right))
+    yield ('subdivide', left, mid)
     for e in merge_sort(data, left, mid):
         yield e
+    yield ('subdivide', mid + 1, right)
     for e in merge_sort(data, mid, right):
         yield e
 
     for e in merge(data, left, mid, right):
+        yield e
+
+
+def quicksort(data, left=None, right=None):
+    """Quick sort in place. Like selection_sort, this is a generator."""
+    if left is None:
+        left = 0
+    if right is None:
+        right = len(data) - 1
+    if right <= left:
+        return
+
+    mid = None
+    def partition(data, left, right):
+        pi = (left + right) // 2
+        pivot = data[pi]
+        i = left
+        j = right
+        while True:
+            while True:
+                yield ('cmp', i, pi)
+                if data[i] >= pivot:
+                    yield ('focus', i, None)
+                    break
+                i += 1
+            while True:
+                yield ('cmp', j, pi)
+                if data[j] <= pivot:
+                    yield ('focus', i, j)
+                    break
+                j -= 1
+
+            nonlocal mid
+            if i >= j:
+                mid = j
+                return
+            elif data[i] == pivot and data[j] == pivot:
+                mid = i
+                return
+
+            yield ('swap', i, j)
+
+    for e in partition(data, left, right):
+        yield e
+    assert(mid is not None)
+
+    yield ('subdivide', left, mid)
+    for e in quicksort(data, left, mid):
+        yield e
+    yield ('subdivide', mid + 1, right)
+    for e in quicksort(data, mid + 1, right):
         yield e
 
 
@@ -97,8 +149,8 @@ def random_list(length, max_value=None):
 
 
 if __name__ == '__main__':
-    lst = [2,10,5,3,8,1]
-    mysort = selection_sort
+    lst = [-2, -2]
+    mysort = quicksort
 
     print_effects(mysort, lst)
     print(lst)

@@ -25,6 +25,16 @@ class MergeSort(unittest.TestCase):
         assert correct == xs
 
 
+class QuickSort(unittest.TestCase):
+    @given(st.lists(st.integers()))
+    @settings(max_examples=200)
+    @example([])
+    def test_sort_works(self, xs):
+        correct = list(sorted(xs))
+        sort.run(sort.quicksort, xs)
+        assert correct == xs
+
+
 class CountSteps(unittest.TestCase):
     def test_count(self):
 
