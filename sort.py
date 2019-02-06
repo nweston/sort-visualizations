@@ -9,6 +9,7 @@ swap), allow for visualization or instrumentation. The caller is
 responsible for performing swaps.
 """
     for dest in range(len(data) - 1):
+        yield ('label', 'Find Smallest', None)
         smallest_i = dest
         yield ('focus', dest, None)
         for i in range(dest + 1, len(data)):
@@ -16,6 +17,7 @@ responsible for performing swaps.
             if data[i] < data[smallest_i]:
                 smallest_i = i
                 yield ('focus', i, None)
+        yield ('label', 'Move to Front', None)
         yield ('swap', dest, smallest_i)
 
 
@@ -71,6 +73,7 @@ def quicksort(data, left=None, right=None):
     def partition(data, left, right):
         pi = (left + right) // 2
         pivot = data[pi]
+        yield ('label', 'Partition, pivot=%s' % pivot, None)
         i = left
         j = right
         while True:
@@ -106,13 +109,16 @@ def quicksort(data, left=None, right=None):
         yield e
     assert(mid is not None)
 
+    yield ('label', 'Sort Left Side', None)
     yield ('subdivide', left, mid + 1)
     for e in quicksort(data, left, mid):
         yield e
+    yield ('label', 'Sort Right Side', None)
     yield ('subdivide', mid + 1, right + 1)
     for e in quicksort(data, mid + 1, right):
         yield e
     yield ('subdivide', left, right + 1)
+    yield ('label', 'Sorted from %d to %d' % (left, right), None)
 
 
 def perform_effect(effect, data):
@@ -140,9 +146,10 @@ def print_effects(sort, data):
 def count_steps(sort, data):
     """Run a sorting algorithm, returning the number of effects performed."""
 
-    def inc_count(*args):
+    def inc_count(effect, a, b):
         nonlocal count
-        count = count + 1
+        if effect in ['cmp', 'swap', 'set']:
+            count = count + 1
     count = 0
 
     run(sort, data, inc_count)

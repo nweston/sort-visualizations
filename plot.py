@@ -132,6 +132,13 @@ class CircleAnimation:
         fig.patches.extend(self._arrows)
         fig.texts.extend(self._texts)
 
+        self._label = text.Text(0, 0.9,
+                                transform=fig.transFigure, figure=fig,
+                                verticalalignment='top',
+                                horizontalalignment='left',
+                                fontsize=200 * self._spacing)
+        fig.texts.append(self._label)
+
         # Collect effects and generate animation frames
         effects = []
         sort.run(sort_func, data, lambda *e: effects.append(e))
@@ -186,7 +193,8 @@ class CircleAnimation:
             self._focus(a, b)
         elif kind == 'subdivide':
             self._compare()
-            for c, t, i in zip(self._circles, self._texts, range(len(self._circles))):
+            for c, t, i in zip(self._circles, self._texts,
+                               range(len(self._circles))):
                 if i in range(a, b):
                     color = 'black'
                 else:
@@ -215,6 +223,9 @@ class CircleAnimation:
             c = self._circles
             c[a].set_fill(False)
             c[b].set_fill(False)
+        elif kind == 'label':
+            self._compare()
+            self._label.set_text(a)
 
 
 def animated_circles(fig, sort_func, data, interval):
