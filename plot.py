@@ -136,7 +136,7 @@ class CircleAnimation:
         effects = []
         sort.run(sort_func, data, lambda *e: effects.append(e))
         self._generate_frames(effects)
-        self._focused = None
+        self._focused = []
 
     def _arrow_points(self, x_offset=0, y_offset=0):
         width = 0.1 * self._spacing
@@ -161,12 +161,14 @@ class CircleAnimation:
     def __len__(self):
         return len(self._frames)
 
-    def _focus(self, i):
-        if self._focused is not None:
-            self._circles[self._focused].set_edgecolor('black')
-        if i is not None:
-            self._circles[i].set_edgecolor('orange')
-            self._focused = i
+    def _focus(self, *val):
+        for i in self._focused:
+            self._circles[i].set_edgecolor('black')
+        self._focused = []
+        for i in val:
+            if i is not None:
+                self._circles[i].set_edgecolor('orange')
+                self._focused.append(i)
 
     def _compare(self, *elements):
         if elements:
@@ -181,12 +183,21 @@ class CircleAnimation:
         kind, a, b = self._frames[step]
 
         if kind == 'focus':
-            self._focus(a)
+            self._focus(a, b)
+        elif kind == 'subdivide':
+            self._compare()
+            for c, t, i in zip(self._circles, self._texts, range(len(self._circles))):
+                if i in range(a, b):
+                    color = 'black'
+                else:
+                    color = 'gray'
+                c.set_edgecolor(color)
+                t.set_color(color)
         elif kind == 'cmp':
             self._compare(a, b)
         elif kind == 'pre-swap':
             c = self._circles
-            self._focus(None)
+            self._focus()
             self._compare()
             c[a].set_fill(True)
             c[b].set_fill(True)

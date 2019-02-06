@@ -74,10 +74,11 @@ def quicksort(data, left=None, right=None):
         i = left
         j = right
         while True:
+            yield('focus', pi, None)
             while True:
                 yield ('cmp', i, pi)
                 if data[i] >= pivot:
-                    yield ('focus', i, None)
+                    yield ('focus', i, pi)
                     break
                 i += 1
             while True:
@@ -96,17 +97,22 @@ def quicksort(data, left=None, right=None):
                 return
 
             yield ('swap', i, j)
+            if i == pi:
+                pi = j
+            elif j == pi:
+                pi = i
 
     for e in partition(data, left, right):
         yield e
     assert(mid is not None)
 
-    yield ('subdivide', left, mid)
+    yield ('subdivide', left, mid + 1)
     for e in quicksort(data, left, mid):
         yield e
-    yield ('subdivide', mid + 1, right)
+    yield ('subdivide', mid + 1, right + 1)
     for e in quicksort(data, mid + 1, right):
         yield e
+    yield ('subdivide', left, right + 1)
 
 
 def perform_effect(effect, data):
