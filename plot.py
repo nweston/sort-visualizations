@@ -118,10 +118,18 @@ class CircleAnimation:
                           fontsize=300 * r)
             return c, t
 
+        def create_arrow():
+            return patches.Polygon(self._arrow_points(),
+                                   closed=True, transform=fig.transFigure,
+                                   figure=fig, visible=False)
+
         self._circles, self._texts = map(list,
                                          zip(*[create_artists(i, v)
                                                for i, v in enumerate(data)]))
+        self._arrows = [create_arrow(), create_arrow()]
+
         fig.patches.extend(self._circles)
+        fig.patches.extend(self._arrows)
         fig.texts.extend(self._texts)
 
         # Collect effects and generate animation frames
@@ -129,6 +137,15 @@ class CircleAnimation:
         sort.run(sort_func, data, lambda *e: effects.append(e))
         self._generate_frames(effects)
         self._focused = None
+
+    def _arrow_points(self, x_offset=0, y_offset=0):
+        width = 0.1 * self._spacing
+        x_offset -= 0.5 * width                # Center horizontally
+        y_offset += 0.5 + 1.5 * self._spacing  # Center vertically
+        return [(x + x_offset, y + y_offset)
+                for x, y in [(0, 0),
+                             (width, 0),
+                             (0.5 * width, -3 * width)]]
 
     def _generate_frames(self, effects):
         self._frames = [('init', None, None)]
@@ -151,13 +168,26 @@ class CircleAnimation:
             self._circles[i].set_edgecolor('orange')
             self._focused = i
 
+    def _compare(self, *elements):
+        if elements:
+            for a, i in zip(self._arrows, elements):
+                a.set_visible(True)
+                a.set_xy(self._arrow_points((i + 0.5) * self._spacing))
+        else:
+            for a in self._arrows:
+                a.set_visible(False)
+
     def animate(self, step):
         kind, a, b = self._frames[step]
+
         if kind == 'focus':
             self._focus(a)
+        elif kind == 'cmp':
+            self._compare(a, b)
         elif kind == 'pre-swap':
             c = self._circles
             self._focus(None)
+            self._compare()
             c[a].set_fill(True)
             c[b].set_fill(True)
         elif kind == 'swap':
