@@ -9,31 +9,31 @@ swap), allow for visualization or instrumentation. The caller is
 responsible for performing swaps.
 """
     for dest in range(len(data) - 1):
-        yield ('label', 'Find Smallest', None)
+        yield 'label', 'Find Smallest'
         smallest_i = dest
-        yield ('focus', dest, None)
+        yield 'focus', dest
         for i in range(dest + 1, len(data)):
-            yield ('cmp', smallest_i, i)
+            yield 'cmp', smallest_i, i
             if data[i] < data[smallest_i]:
                 smallest_i = i
-                yield ('focus', i, None)
-        yield ('label', 'Move to Front', None)
-        yield ('swap', dest, smallest_i)
+                yield 'focus', i
+        yield 'label', 'Move to Front'
+        yield 'swap', dest, smallest_i
 
 
 def merge(data, left, mid, right):
     # Copy each sub-list, reverse them so we can pop from the end, and
     # merge back into the main list. This isn't terribly efficient but
     # it's convenient.
-    yield ('merge', (left, mid), (mid, right))
+    yield 'merge', (left, mid), (mid, right)
     sub_left = data[left:mid]
     sub_right = data[mid:right]
     for i in range(left, right):
         if not sub_right or (sub_left and sub_left[0] < sub_right[0]):
-            yield ('set', i, sub_left[0])
+            yield 'set', i, sub_left[0]
             del sub_left[0]
         else:
-            yield ('set', i, sub_right[0])
+            yield 'set', i, sub_right[0]
             del sub_right[0]
     assert len(sub_left) == 0
     assert len(sub_right) == 0
@@ -49,10 +49,10 @@ def merge_sort(data, left=None, right=None):
         return
 
     mid = (left + right) // 2
-    yield ('subdivide', left, mid)
+    yield 'subdivide', left, mid
     for e in merge_sort(data, left, mid):
         yield e
-    yield ('subdivide', mid + 1, right)
+    yield 'subdivide', mid + 1, right
     for e in merge_sort(data, mid, right):
         yield e
 
@@ -73,21 +73,21 @@ def quicksort(data, left=None, right=None):
     def partition(data, left, right):
         pi = (left + right) // 2
         pivot = data[pi]
-        yield ('label', 'Partition, pivot=%s' % pivot, None)
+        yield 'label', 'Partition, pivot=%s' % pivot
         i = left
         j = right
         while True:
-            yield('focus', pi, None)
+            yield 'focus', pi
             while True:
-                yield ('cmp', i, pi)
+                yield 'cmp', i, pi
                 if i == pi or data[i] > pivot:
-                    yield ('focus', i, pi)
+                    yield 'focus', i, pi
                     break
                 i += 1
             while True:
-                yield ('cmp', j, pi)
+                yield 'cmp', j, pi
                 if j == pi or data[j] < pivot:
-                    yield ('focus', i, j)
+                    yield 'focus', i, j
                     break
                 j -= 1
 
@@ -99,7 +99,7 @@ def quicksort(data, left=None, right=None):
                 mid = i
                 return
 
-            yield ('swap', i, j)
+            yield 'swap', i, j
             if i == pi:
                 pi = j
             elif j == pi:
@@ -109,24 +109,26 @@ def quicksort(data, left=None, right=None):
         yield e
     assert(mid is not None)
 
-    yield ('label', 'Sort Left Side', None)
-    yield ('subdivide', left, mid + 1)
+    yield 'label', 'Sort Left Side'
+    yield 'subdivide', left, mid + 1
     for e in quicksort(data, left, mid):
         yield e
-    yield ('label', 'Sort Right Side', None)
-    yield ('subdivide', mid + 1, right + 1)
+    yield 'label', 'Sort Right Side'
+    yield 'subdivide', mid + 1, right + 1
     for e in quicksort(data, mid + 1, right):
         yield e
-    yield ('subdivide', left, right + 1)
-    yield ('label', 'Sorted from %d to %d' % (left, right), None)
+    yield 'subdivide', left, right + 1
+    yield 'label', 'Sorted from %d to %d' % (left, right)
 
 
 def perform_effect(effect, data):
     """Apply an effect to a list, modifying the data argument."""
-    kind, a, b = effect
+    kind = effect[0]
     if kind == 'swap':
+        a, b = effect[1:]
         data[a], data[b] = data[b], data[a]
     if kind == 'set':
+        a, b = effect[1:]
         data[a] = b
 
 
@@ -146,7 +148,7 @@ def print_effects(sort, data):
 def count_steps(sort, data):
     """Run a sorting algorithm, returning the number of effects performed."""
 
-    def inc_count(effect, a, b):
+    def inc_count(effect, *args):
         nonlocal count
         if effect in ['cmp', 'swap', 'set']:
             count = count + 1

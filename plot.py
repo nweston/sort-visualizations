@@ -157,8 +157,9 @@ class CircleAnimation:
     def _generate_frames(self, effects):
         self._frames = [('init', None, None)]
         for e in effects:
-            kind, a, b = e
+            kind = e[0]
             if kind == 'swap':
+                a, b = e[1:]
                 self._frames.append(('pre-swap', a, b))
                 self._frames.append(e)
                 self._frames.append(('post-swap', a, b))
@@ -187,11 +188,13 @@ class CircleAnimation:
                 a.set_visible(False)
 
     def animate(self, step):
-        kind, a, b = self._frames[step]
+        effect = self._frames[step]
+        kind = effect[0]
 
         if kind == 'focus':
-            self._focus(a, b)
+            self._focus(*effect[1:])
         elif kind == 'subdivide':
+            a, b = effect[1:]
             self._compare()
             for c, t, i in zip(self._circles, self._texts,
                                range(len(self._circles))):
@@ -202,14 +205,17 @@ class CircleAnimation:
                 c.set_edgecolor(color)
                 t.set_color(color)
         elif kind == 'cmp':
+            a, b = effect[1:]
             self._compare(a, b)
         elif kind == 'pre-swap':
+            a, b = effect[1:]
             c = self._circles
             self._focus()
             self._compare()
             c[a].set_fill(True)
             c[b].set_fill(True)
         elif kind == 'swap':
+            a, b = effect[1:]
             c = self._circles
             c[a], c[b] = c[b], c[a]
             c[a].set_center(((a + 0.5) * self._spacing, 0.5))
@@ -220,12 +226,13 @@ class CircleAnimation:
             c[a].set_position(((a + 0.5) * self._spacing, 0.5))
             c[b].set_position(((b + 0.5) * self._spacing, 0.5))
         elif kind == 'post-swap':
+            a, b = effect[1:]
             c = self._circles
             c[a].set_fill(False)
             c[b].set_fill(False)
         elif kind == 'label':
             self._compare()
-            self._label.set_text(a)
+            self._label.set_text(effect[1])
 
 
 def animated_circles(fig, sort_func, data, interval):
