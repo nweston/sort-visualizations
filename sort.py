@@ -80,13 +80,13 @@ def quicksort(data, left=None, right=None):
             yield('focus', pi, None)
             while True:
                 yield ('cmp', i, pi)
-                if data[i] >= pivot:
+                if i == pi or data[i] > pivot:
                     yield ('focus', i, pi)
                     break
                 i += 1
             while True:
                 yield ('cmp', j, pi)
-                if data[j] <= pivot:
+                if j == pi or data[j] < pivot:
                     yield ('focus', i, j)
                     break
                 j -= 1
