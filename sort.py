@@ -1,6 +1,5 @@
 import hypothesis.strategies as st
 
-
 def selection_sort(data):
     """Sort contents of data in place.
 
@@ -50,14 +49,10 @@ def merge_sort(data, left=None, right=None):
 
     mid = (left + right) // 2
     yield 'subdivide', left, mid
-    for e in merge_sort(data, left, mid):
-        yield e
+    yield from merge_sort(data, left, mid)
     yield 'subdivide', mid + 1, right
-    for e in merge_sort(data, mid, right):
-        yield e
-
-    for e in merge(data, left, mid, right):
-        yield e
+    yield from merge_sort(data, mid, right)
+    yield from merge(data, left, mid, right)
 
 
 def quicksort(data, left=None, right=None):
@@ -105,18 +100,15 @@ def quicksort(data, left=None, right=None):
             elif j == pi:
                 pi = i
 
-    for e in partition(data, left, right):
-        yield e
+    yield from partition(data, left, right)
     assert(mid is not None)
 
     yield 'label', 'Sort Left Side'
     yield 'subdivide', left, mid + 1
-    for e in quicksort(data, left, mid):
-        yield e
+    yield from quicksort(data, left, mid)
     yield 'label', 'Sort Right Side'
     yield 'subdivide', mid + 1, right + 1
-    for e in quicksort(data, mid + 1, right):
-        yield e
+    yield from quicksort(data, mid + 1, right)
     yield 'subdivide', left, right + 1
     yield 'label', 'Sorted from %d to %d' % (left, right)
 
