@@ -40,6 +40,6 @@ class CountSteps(unittest.TestCase):
 
         def fake_sort(data):
             for _ in range(10):
-                yield ('fake_effect', 0, 0)
+                yield ('cmp', 0, 0)
 
         self.assertEqual(sort.count_steps(fake_sort, []), 10)
